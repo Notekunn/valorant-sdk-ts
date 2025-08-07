@@ -1,0 +1,13 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    open-pull-requests-limit: 8
+    directory: '/'
+    versioning-strategy: 'increase'
+    commit-message:
+      prefix: 'fix'
+      include: 'scope'
+    schedule:
+      interval: daily
+      time: '05:00'
+      timezone: 'Asia/Ho_Chi_Minh'

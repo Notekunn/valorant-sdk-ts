@@ -22,26 +22,36 @@ pnpm add valorant-api
 ## Quick Start
 
 ```typescript
-import { ValorantAPI, VALORANT_REGIONS } from 'valorant-api';
+import { AuthAPI, GameAPI } from 'valorant-api';
 
-// Initialize the API
-const api = new ValorantAPI({
-  region: VALORANT_REGIONS.NA,
-  clientVersion: 'release-07.12-shipping-21-2100',
+// Initialize the APIs
+const auth = new AuthAPI();
+const game = new GameAPI({
   userAgent: 'RiotClient/58.0.0.6400294126 (Windows; 10; Professional (Build 19041))',
+  timeout: 10000,
+  retries: 3,
 });
 
-// Authenticate
-await api.authenticate('your-username', 'your-password');
+// Authenticate with username and password
+const authResult = await auth.authenticate({
+  username: 'your-username',
+  password: 'your-password',
+  region: 'na',
+  rememberMe: true,
+});
+
+// Or authenticate with existing cookies
+const authResult = await auth.reAuthenticate('your-cookie-string');
+
+// Get user information
+const userInfo = await auth.getUserInfo(authResult);
 
 // Get player by Riot ID
-const player = await api.getPlayerByName('PlayerName', 'TAG');
+const player = await game.getPlayerByName('PlayerName', 'TAG');
 
-// Get player MMR
-const mmr = await api.getPlayerMMR(player.puuid);
-
-// Get recent matches
-const matches = await api.getRecentMatches(player.puuid, 5);
+// Get region and shop data
+const region = await game.getRegion(authResult.accessToken, authResult.idToken);
+const shop = await game.getShop(authResult, region, userInfo.puuid);
 ```
 
 ## Authentication
@@ -49,30 +59,35 @@ const matches = await api.getRecentMatches(player.puuid, 5);
 ### Basic Authentication
 
 ```typescript
-import { ValorantAPI, VALORANT_REGIONS } from 'valorant-api';
+import { AuthAPI } from 'valorant-api';
 
-const api = new ValorantAPI({
-  region: VALORANT_REGIONS.NA,
-});
+const auth = new AuthAPI();
 
 // Authenticate with username and password
-await api.authenticate('username', 'password');
+const authResult = await auth.authenticate({
+  username: 'your-username',
+  password: 'your-password',
+  region: 'na',
+  rememberMe: true,
+});
 
 // Check if authenticated
-if (api.isAuthenticated()) {
+if (auth.isAuthenticated(authResult)) {
   console.log('Successfully authenticated!');
+  console.log('Access Token:', authResult.accessToken);
+  console.log('Entitlements Token:', authResult.entitlementsToken);
 }
 ```
 
 ### Multifactor Authentication
 
 ```typescript
-import { RiotAuth } from 'valorant-api';
+import { AuthAPI } from 'valorant-api';
 
-const auth = new RiotAuth();
+const auth = new AuthAPI();
 
 try {
-  await auth.authenticate({
+  const authResult = await auth.authenticate({
     username: 'username',
     password: 'password',
     region: 'na',
@@ -80,8 +95,10 @@ try {
   });
 } catch (error) {
   if (error.message.includes('multifactor')) {
-    // Handle MFA
-    await auth.handleMultifactor('123456');
+    // Handle MFA - you'll need the cookies from the failed auth attempt
+    const cookies = []; // Extract from previous attempt
+    const mfaResult = await auth.handleMultifactor(cookies, '123456');
+    console.log('MFA completed:', mfaResult);
   }
 }
 ```
@@ -91,25 +108,17 @@ try {
 You can also authenticate using existing cookies from a previous session or browser cookies. This is useful for:
 
 - Reusing saved authentication sessions
-- Extracting cookies from browser sessions
+- Extracting cookies from browser sessions  
 - Avoiding repeated username/password authentication
 
 ```typescript
-import { RiotAuth } from 'valorant-api';
+import { AuthAPI } from 'valorant-api';
 
-const auth = new RiotAuth();
+const auth = new AuthAPI();
 
-// Authenticate using existing cookies
-const authResult = await auth.authenticateWithCookies({
-  cookies: {
-    ssid: 'your-ssid-cookie-value',
-    tdid: 'your-tdid-cookie-value',
-    sub: 'your-sub-cookie-value',
-    csid: 'your-csid-cookie-value',
-    clid: 'your-clid-cookie-value',
-  },
-  region: 'na',
-});
+// Authenticate using existing cookie string
+const cookieString = 'ssid=value; tdid=value; sub=value; csid=value; clid=value';
+const authResult = await auth.reAuthenticate(cookieString);
 
 console.log('Access Token:', authResult.accessToken);
 console.log('Entitlements Token:', authResult.entitlementsToken);
@@ -122,240 +131,433 @@ You can extract cookies from your browser's developer tools:
 1. Open browser developer tools (F12)
 2. Go to the Application/Storage tab
 3. Find cookies for `auth.riotgames.com`
-4. Copy the values for `ssid`, `tdid`, `sub`, `csid`, and `clid`
+4. Copy the values as a semicolon-separated string: `ssid=value; tdid=value; sub=value; csid=value; clid=value`
 
 #### Saving and Reusing Cookies
 
 ```typescript
 // After normal authentication, save the cookies
-const normalAuth = await auth.authenticate({
+const authResult = await auth.authenticate({
   username: 'username',
   password: 'password',
   region: 'na',
   rememberMe: true,
 });
 
-// Save cookies for later use
-const savedCookies = normalAuth.cookies;
+// Save cookies for later use (if available)
+const savedCookies = authResult.cookies;
 
 // Later, use saved cookies to authenticate
-const cookieAuth = new RiotAuth();
-await cookieAuth.authenticateWithCookies({
-  cookies: savedCookies,
-  region: 'na',
-});
+const cookieAuth = new AuthAPI();
+const cookieString = savedCookies?.map(c => `${c.name}=${c.value}`).join('; ') || '';
+await cookieAuth.reAuthenticate(cookieString);
 ```
 
-## Player Data
+## Game API Usage
 
 ### Get Player Information
 
 ```typescript
+import { GameAPI } from 'valorant-api';
+
+const game = new GameAPI();
+
 // Get player by Riot ID
-const player = await api.getPlayerByName('PlayerName', 'TAG');
+const player = await game.getPlayerByName('PlayerName', 'TAG');
 console.log(`Player: ${player.gameName}#${player.tagLine}`);
+console.log(`PUUID: ${player.puuid}`);
+console.log(`Region: ${player.region}`);
 console.log(`Account Level: ${player.accountLevel}`);
 ```
 
-### Get MMR and Rank
+### Get User Region
 
 ```typescript
-const mmr = await api.getPlayerMMR(player.puuid);
-
-// Get competitive data
-const competitiveData = mmr.QueueSkills['competitive'];
-const currentSeason = competitiveData.CurrentSeasonGamesNeededForRating;
-
-console.log(`Current Rank: ${mmr.LatestCompetitiveUpdate.TierAfterUpdate}`);
-console.log(`Ranked Rating: ${mmr.LatestCompetitiveUpdate.RankedRatingAfterUpdate}`);
+// Get the user's region from auth tokens
+const region = await game.getRegion(authResult.accessToken, authResult.idToken);
+console.log(`User region: ${region}`);
 ```
 
-### Get Player Loadout
+### Get Player Store
 
 ```typescript
-const loadout = await api.getPlayerLoadout(player.puuid);
-console.log(`Selected Agent: ${loadout.CharacterID}`);
-```
+// Get authenticated user info first
+const userInfo = await auth.getUserInfo(authResult);
 
-### Get Player Wallet
-
-```typescript
-const wallet = await api.getPlayerWallet(player.puuid);
-console.log(`VP: ${wallet.Balances['85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741']}`);
-console.log(`Radianite: ${wallet.Balances['e59aa87c-4cbf-517a-5983-6e81511be9b7']}`);
-```
-
-### Get Store
-
-```typescript
-const store = await api.getPlayerStore(player.puuid);
+// Get the player's store/shop
+const shop = await game.getShop(authResult, region, userInfo.puuid);
 
 // Featured bundle
-console.log('Featured Bundle:', store.FeaturedBundle.Bundle.ID);
+console.log('Featured Bundle:', shop.FeaturedBundle.Bundle.ID);
+console.log('Bundle Duration:', shop.FeaturedBundle.BundleRemainingDurationInSeconds);
 
-// Daily offers
-store.SkinsPanelLayout.SingleItemOffers.forEach(offer => {
-  console.log(`Skin: ${offer.Item.ItemID} - ${offer.DiscountedPrice} VP`);
+// Daily store offers
+shop.SkinsPanelLayout.SingleItemStoreOffers.forEach(offer => {
+  console.log(`Offer ID: ${offer.OfferID}`);
+  console.log(`Cost: ${JSON.stringify(offer.Cost)}`);
+  console.log(`Rewards: ${offer.Rewards.length} items`);
 });
-```
 
-## Match Data
-
-### Get Match History
-
-```typescript
-// Get last 20 matches
-const matchIds = await api.getMatchHistory(player.puuid, 0, 20);
-
-// Get detailed match information
-const match = await api.getMatchDetails(matchIds[0]);
-
-console.log(`Map: ${match.matchInfo.mapId}`);
-console.log(`Mode: ${match.matchInfo.gameMode}`);
-console.log(`Result: ${match.matchInfo.isCompleted ? 'Completed' : 'In Progress'}`);
-```
-
-### Get Player Statistics
-
-```typescript
-const stats = await api.getPlayerStats(player.puuid, 10);
-
-console.log(`K/D/A: ${stats.totalKills}/${stats.totalDeaths}/${stats.totalAssists}`);
-console.log(`Win Rate: ${stats.winRate.toFixed(1)}%`);
-console.log(`Average Score: ${stats.averageScore.toFixed(0)}`);
-```
-
-### Analyze Match Performance
-
-```typescript
-const matches = await api.getRecentMatches(player.puuid, 5);
-
-matches.forEach(match => {
-  const player = match.players.find(p => p.puuid === player.puuid);
-  if (player) {
-    console.log(`Match ${match.matchInfo.matchId}:`);
-    console.log(`  Agent: ${player.characterId}`);
-    console.log(`  Kills: ${player.playerStats.kills}`);
-    console.log(`  Deaths: ${player.playerStats.deaths}`);
-    console.log(`  Assists: ${player.playerStats.assists}`);
-    console.log(`  Score: ${player.playerStats.score}`);
-  }
-});
-```
-
-## Game State
-
-### Get Current Party
-
-```typescript
-const party = await api.getPartyInfo(player.puuid);
-console.log(`Party Size: ${party.Players.length}`);
-```
-
-### Get Pre-Game Information
-
-```typescript
-const pregame = await api.getPreGameInfo(player.puuid);
-console.log(`Map: ${pregame.MapID}`);
-console.log(`Mode: ${pregame.GameMode}`);
-```
-
-### Get Live Game Information
-
-```typescript
-const liveGame = await api.getCoreGameInfo(player.puuid);
-console.log(`Match ID: ${liveGame.MatchID}`);
-console.log(`Game State: ${liveGame.State}`);
+// Night market (if available)
+if (shop.BonusStore) {
+  shop.BonusStore.BonusStoreOffers.forEach(offer => {
+    console.log(`Bonus Offer: ${offer.BonusOfferID}`);
+    console.log(`Discount: ${offer.DiscountPercent}%`);
+  });
+}
 ```
 
 ## Configuration
 
-### API Configuration
+### GameAPI Configuration
 
 ```typescript
-import { ValorantAPI, VALORANT_REGIONS } from 'valorant-api';
+import { GameAPI } from 'valorant-api';
 
-const api = new ValorantAPI({
-  region: VALORANT_REGIONS.NA, // or EU, AP, KR, BR, LATAM
-  clientVersion: 'release-07.12-shipping-21-2100',
+const game = new GameAPI({
   userAgent: 'RiotClient/58.0.0.6400294126 (Windows; 10; Professional (Build 19041))',
   timeout: 10000, // 10 seconds
   retries: 3, // Number of retry attempts
 });
 ```
 
-### Cache Configuration
+## API Reference
+
+### AuthAPI
+
+The `AuthAPI` class handles Riot Games authentication and user information.
+
+#### Constructor
 
 ```typescript
-import { Cache } from 'valorant-api';
-
-const cache = new Cache({
-  ttl: 300, // 5 minutes default TTL
-  checkperiod: 600, // Check for expired keys every 10 minutes
-  useClones: false,
-  deleteOnExpire: true,
-});
+new AuthAPI()
 ```
+
+No parameters required for initialization.
+
+#### Methods
+
+##### `authenticate(config: RiotAuthConfig): Promise<RiotReAuthResponse>`
+
+Authenticate with Riot Games using username and password.
+
+**Input (`RiotAuthConfig`):**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `username` | `string` | ✓ | Riot Games username |
+| `password` | `string` | ✓ | Riot Games password |
+| `region` | `string` | ✓ | Region code (na, eu, ap, kr, br, latam) |
+| `rememberMe` | `boolean` | ✗ | Whether to remember the session |
+
+**Output (`RiotReAuthResponse`):**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `accessToken` | `string` | Access token for API requests |
+| `idToken` | `string` | ID token for user identification |
+| `entitlementsToken` | `string` | Entitlements token for Valorant API |
+| `cookies` | `RiotAuthCookies` | Session cookies (optional) |
+
+##### `reAuthenticate(cookies: string): Promise<RiotReAuthResponse>`
+
+Re-authenticate using existing cookie string.
+
+**Input:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `cookies` | `string` | ✓ | Cookie string in format "name=value; name2=value2" |
+
+**Output:** Same as `authenticate()` method above.
+
+##### `handleMultifactor(cookies: RiotAuthCookies, code: string): Promise<RiotReAuthResponse>`
+
+Handle multifactor authentication.
+
+**Input:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `cookies` | `RiotAuthCookies` | ✓ | Cookies from failed authentication |
+| `code` | `string` | ✓ | MFA verification code |
+
+**Output:** Same as `authenticate()` method above.
+
+##### `getUserInfo(auth: RiotReAuthResponse): Promise<RiotUserInfo>`
+
+Get user information from authentication tokens.
+
+**Input:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `auth` | `RiotReAuthResponse` | ✓ | Authentication response object |
+
+**Output (`RiotUserInfo`):**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `country` | `string` | User's country code |
+| `puuid` | `string` | Player Universal Unique Identifier |
+| `username` | `string` | Username |
+| `tagName` | `string` | Full tag name (GameName#TAG) |
+
+##### `isAuthenticated(auth: RiotReAuthResponse): boolean`
+
+Check if user is authenticated.
+
+**Input:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `auth` | `RiotReAuthResponse` | ✓ | Authentication response to check |
+
+**Output:**
+
+| Type | Description |
+|------|-------------|
+| `boolean` | `true` if authenticated, `false` otherwise |
+
+##### `refreshTokens(accessToken: string): Promise<string>`
+
+Refresh authentication tokens.
+
+**Input:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `accessToken` | `string` | ✓ | Current access token |
+
+**Output:**
+
+| Type | Description |
+|------|-------------|
+| `string` | New entitlements token |
+
+### GameAPI
+
+The `GameAPI` class handles Valorant game data and store information.
+
+#### Constructor
+
+```typescript
+new GameAPI(config?: ValorantApiConfig)
+```
+
+**Input (`ValorantApiConfig`):**
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `userAgent` | `string` | ✗ | `'RiotClient/58.0.0.6400294126'` | User agent string |
+| `timeout` | `number` | ✗ | `10000` | Request timeout in milliseconds |
+| `retries` | `number` | ✗ | `3` | Number of retry attempts |
+
+#### Methods
+
+##### `getPlayerByName(gameName: string, tagLine: string): Promise<ValorantUser>`
+
+Get player information by Riot ID.
+
+**Input:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `gameName` | `string` | ✓ | Player's game name |
+| `tagLine` | `string` | ✓ | Player's tag line |
+
+**Output (`ValorantUser`):**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `puuid` | `string` | Player Universal Unique Identifier |
+| `gameName` | `string` | Player's game name |
+| `tagLine` | `string` | Player's tag line |
+| `region` | `string` | Player's region |
+| `accountLevel` | `number` | Account level |
+
+##### `getRegion(accessToken: string, idToken: string): Promise<string>`
+
+Get user's region from authentication tokens.
+
+**Input:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `accessToken` | `string` | ✓ | Access token from authentication |
+| `idToken` | `string` | ✓ | ID token from authentication |
+
+**Output:**
+
+| Type | Description |
+|------|-------------|
+| `string` | User's region code |
+
+##### `getShop(auth: RiotReAuthResponse, region: string, puuid: string): Promise<StorefrontResponse>`
+
+Get player's store/shop information.
+
+**Input:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `auth` | `RiotReAuthResponse` | ✓ | Authentication response |
+| `region` | `string` | ✓ | Player's region |
+| `puuid` | `string` | ✓ | Player's PUUID |
+
+**Output (`StorefrontResponse`):**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `FeaturedBundle` | `object` | Featured bundle information |
+| `SkinsPanelLayout` | `object` | Daily store offers |
+| `UpgradeCurrencyStore` | `object` | Radianite offers |
+| `AccessoryStore` | `object` | Accessory store offers |
+| `BonusStore` | `object` | Night market offers (optional) |
+
+**Featured Bundle Object:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `Bundle` | `Bundle` | Bundle details |
+| `Bundles` | `Bundle[]` | Array of bundles |
+| `BundleRemainingDurationInSeconds` | `number` | Time remaining |
+
+**SkinsPanelLayout Object:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `SingleItemOffers` | `string[]` | Array of offer IDs |
+| `SingleItemStoreOffers` | `Offer[]` | Array of offer details |
+| `SingleItemOffersRemainingDurationInSeconds` | `number` | Time remaining |
+
+**Offer Object:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `OfferID` | `string` | Unique offer identifier |
+| `IsDirectPurchase` | `boolean` | Whether it's a direct purchase |
+| `StartDate` | `string` | Offer start date (ISO 8601) |
+| `Cost` | `CurrencyMap` | Cost in various currencies |
+| `Rewards` | `Reward[]` | Items included in the offer |
 
 ## Error Handling
 
 ```typescript
+import { AuthAPI, GameAPI } from 'valorant-api';
+
+const auth = new AuthAPI();
+const game = new GameAPI();
+
 try {
-  const player = await api.getPlayerByName('PlayerName', 'TAG');
+  const player = await game.getPlayerByName('PlayerName', 'TAG');
 } catch (error) {
   if (error.message.includes('Not Found')) {
     console.log('Player not found');
   } else if (error.message.includes('Unauthorized')) {
     console.log('Authentication required');
-    await api.authenticate('username', 'password');
+    // Re-authenticate if needed
+    const authResult = await auth.authenticate({
+      username: 'username',
+      password: 'password',
+      region: 'na'
+    });
   } else {
     console.error('API Error:', error.message);
   }
 }
+
+// Handle authentication errors
+try {
+  const authResult = await auth.authenticate({
+    username: 'username', 
+    password: 'password',
+    region: 'na'
+  });
+} catch (error) {
+  if (error.message.includes('multifactor')) {
+    console.log('MFA required');
+  } else if (error.message.includes('Invalid username or password')) {
+    console.log('Invalid credentials');
+  } else {
+    console.error('Auth Error:', error.message);
+  }
+}
 ```
 
-## Available Regions
+## Constants and Enums
+
+### Available Regions
 
 ```typescript
-import { VALORANT_REGIONS } from 'valorant-api';
+import { ValorantRegion } from 'valorant-api';
 
 // Available regions
-console.log(VALORANT_REGIONS.NA); // 'na'
-console.log(VALORANT_REGIONS.EU); // 'eu'
-console.log(VALORANT_REGIONS.AP); // 'ap'
-console.log(VALORANT_REGIONS.KR); // 'kr'
-console.log(VALORANT_REGIONS.BR); // 'br'
-console.log(VALORANT_REGIONS.LATAM); // 'latam'
+console.log(ValorantRegion.Na);    // 'na'
+console.log(ValorantRegion.Eu);    // 'eu'
+console.log(ValorantRegion.Ap);    // 'ap'  
+console.log(ValorantRegion.Kr);    // 'kr'
+console.log(ValorantRegion.Br);    // 'br'
+console.log(ValorantRegion.Latam); // 'latam'
 ```
 
-## Game Modes
+### Game Modes
 
 ```typescript
-import { GAME_MODES } from 'valorant-api';
+import { GameMode } from 'valorant-api';
 
 // Available game modes
-console.log(GAME_MODES.COMPETITIVE); // 'competitive'
-console.log(GAME_MODES.UNRATED); // 'unrated'
-console.log(GAME_MODES.DEATHMATCH); // 'deathmatch'
-console.log(GAME_MODES.SPIKE_RUSH); // 'spikerush'
+console.log(GameMode.Competitive); // 'competitive'
+console.log(GameMode.Unrated);     // 'unrated'
+console.log(GameMode.Deathmatch);  // 'deathmatch'
+console.log(GameMode.SpikeRush);   // 'spikerush'
+console.log(GameMode.Escalation);  // 'ggteam'
+console.log(GameMode.Replication); // 'onefa'
+console.log(GameMode.Custom);      // 'custom'
 ```
 
-## Maps
+### Maps
 
 ```typescript
-import { MAPS } from 'valorant-api';
+import { Map } from 'valorant-api';
 
 // Available maps
-console.log(MAPS.ASCENT); // 'Ascent'
-console.log(MAPS.BIND); // 'Bind'
-console.log(MAPS.HAVEN); // 'Haven'
-console.log(MAPS.SPLIT); // 'Split'
-console.log(MAPS.ICEBOX); // 'Icebox'
-console.log(MAPS.BREEZE); // 'Breeze'
-console.log(MAPS.FRACTURE); // 'Fracture'
-console.log(MAPS.PEARL); // 'Pearl'
-console.log(MAPS.LOTUS); // 'Lotus'
-console.log(MAPS.SUNSET); // 'Sunset'
+console.log(Map.Ascent);   // 'Ascent'
+console.log(Map.Bind);     // 'Bind'
+console.log(Map.Haven);    // 'Haven'
+console.log(Map.Split);    // 'Split'
+console.log(Map.Icebox);   // 'Icebox'
+console.log(Map.Breeze);   // 'Breeze'
+console.log(Map.Fracture); // 'Fracture'
+console.log(Map.Pearl);    // 'Pearl'
+console.log(Map.Lotus);    // 'Lotus'
+console.log(Map.Sunset);   // 'Sunset'
+```
+
+### Agents
+
+```typescript
+import { Agent } from 'valorant-api';
+
+// Agent UUIDs
+console.log(Agent.Jett);      // 'ADD6443A-41BD-E414-F6AD-E58D267F4E95'
+console.log(Agent.Phoenix);   // 'EB93336A-449B-9C1D-5A23-9E9C7C88E8E8'
+console.log(Agent.Sage);      // '6F2A04CA-4E98-F574-15B2-3E3D1F1F7492'
+console.log(Agent.Sova);      // '320B2A48-4D9B-A075-30F1-1F93A9CD638D'
+// ... and more agents
+```
+
+### Error Messages
+
+```typescript
+import { ErrorMessage } from 'valorant-api';
+
+// Pre-defined error messages
+console.log(ErrorMessage.InvalidCredentials);  // 'Invalid username or password'
+console.log(ErrorMessage.MultifactorRequired); // 'Multifactor authentication required'
+console.log(ErrorMessage.RateLimited);         // 'Rate limited by Riot API'
+console.log(ErrorMessage.NetworkError);        // 'Network error occurred'
+console.log(ErrorMessage.SessionExpired);      // 'Session has expired'
 ```
 
 ## Development
@@ -385,20 +587,37 @@ pnpm lint:fix
 ### Testing
 
 ```typescript
-import { ValorantAPI, VALORANT_REGIONS } from 'valorant-api';
+import { AuthAPI, GameAPI } from 'valorant-api';
 
-describe('ValorantAPI', () => {
-  let api: ValorantAPI;
+describe('AuthAPI', () => {
+  let auth: AuthAPI;
 
   beforeEach(() => {
-    api = new ValorantAPI({
-      region: VALORANT_REGIONS.NA,
-    });
+    auth = new AuthAPI();
   });
 
   it('should authenticate successfully', async () => {
-    await api.authenticate('test-user', 'test-pass');
-    expect(api.isAuthenticated()).toBe(true);
+    const authResult = await auth.authenticate({
+      username: 'test-user',
+      password: 'test-pass',
+      region: 'na'
+    });
+    expect(auth.isAuthenticated(authResult)).toBe(true);
+  });
+});
+
+describe('GameAPI', () => {
+  let game: GameAPI;
+
+  beforeEach(() => {
+    game = new GameAPI();
+  });
+
+  it('should get player by name', async () => {
+    const player = await game.getPlayerByName('TestPlayer', 'TAG');
+    expect(player.puuid).toBeDefined();
+    expect(player.gameName).toBe('TestPlayer');
+    expect(player.tagLine).toBe('TAG');
   });
 });
 ```
