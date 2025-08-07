@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios';
 
-import { ApiBaseUrl, ValorantEndpoint } from '../utils/constants';
+import { ApiBaseUrl, ValorantEndpoint } from '../utils/enum';
 import { HttpClient } from '../utils/http-client';
 
 import type {

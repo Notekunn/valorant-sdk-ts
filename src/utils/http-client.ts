@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { DEFAULT_CONFIG, DefaultHeader } from './constants';
+import { DEFAULT_CONFIG, DEFAULT_HEADERS } from './constants';
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
@@ -22,7 +22,7 @@ export class HttpClient {
       timeout: config.timeout ?? DEFAULT_CONFIG.timeout,
       ...(config.baseURL && { baseURL: config.baseURL }),
       headers: {
-        ...DefaultHeader,
+        ...DEFAULT_HEADERS,
         ...config.headers,
       },
     });

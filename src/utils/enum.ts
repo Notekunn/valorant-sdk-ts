@@ -68,14 +68,6 @@ export enum RiotEndpoint {
   UserInfo = '/userinfo',
 }
 
-// HTTP Headers
-export enum DefaultHeader {
-  Accept = 'application/json, text/plain, */*',
-  AcceptLanguage = 'en-US,en;q=0.9',
-  ContentType = 'application/json',
-  UserAgent = 'RiotClient/58.0.0.6400294126 (Windows; 10; Professional (Build 19041))',
-}
-
 // Game Modes
 export enum GameMode {
   Competitive = 'competitive',

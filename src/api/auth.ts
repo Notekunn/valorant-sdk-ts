@@ -1,5 +1,5 @@
-import { ApiBaseUrl, ErrorMessage, RiotEndpoint } from '../utils/constants';
 import { generateCookieString, parseCookies } from '../utils/cookie-parser';
+import { ApiBaseUrl, ErrorMessage, RiotEndpoint } from '../utils/enum';
 import { HttpClient } from '../utils/http-client';
 import { parseAccessToken } from '../utils/token-parser';
 
