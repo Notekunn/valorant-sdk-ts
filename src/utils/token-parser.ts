@@ -21,7 +21,6 @@ export const parseAccessToken = (redirectUrl: string): RiotAuthToken => {
 
     return { accessToken, idToken, expiresAt };
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.log(error);
     return {};
   }
