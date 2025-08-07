@@ -67,5 +67,6 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://npm.pkg.github.com"
-  }
+  },
+  "packageManager": "pnpm@10.11.0"
 }

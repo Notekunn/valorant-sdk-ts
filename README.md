@@ -16,13 +16,13 @@ A modern TypeScript library for interacting with Riot Games' Valorant API, featu
 ## Installation
 
 ```bash
-pnpm add valorant-api
+pnpm add @notekunn/valorant-sdk
 ```
 
 ## Quick Start
 
 ```typescript
-import { AuthAPI, GameAPI } from 'valorant-api';
+import { AuthAPI, GameAPI } from '@notekunn/valorant-sdk';
 
 // Initialize the APIs
 const auth = new AuthAPI();
@@ -59,7 +59,7 @@ const shop = await game.getShop(authResult, region, userInfo.puuid);
 ### Basic Authentication
 
 ```typescript
-import { AuthAPI } from 'valorant-api';
+import { AuthAPI } from '@notekunn/valorant-sdk';
 
 const auth = new AuthAPI();
 
@@ -82,7 +82,7 @@ if (auth.isAuthenticated(authResult)) {
 ### Multifactor Authentication
 
 ```typescript
-import { AuthAPI } from 'valorant-api';
+import { AuthAPI } from '@notekunn/valorant-sdk';
 
 const auth = new AuthAPI();
 
@@ -112,7 +112,7 @@ You can also authenticate using existing cookies from a previous session or brow
 - Avoiding repeated username/password authentication
 
 ```typescript
-import { AuthAPI } from 'valorant-api';
+import { AuthAPI } from '@notekunn/valorant-sdk';
 
 const auth = new AuthAPI();
 
@@ -158,7 +158,7 @@ await cookieAuth.reAuthenticate(cookieString);
 ### Get Player Information
 
 ```typescript
-import { GameAPI } from 'valorant-api';
+import { GameAPI } from '@notekunn/valorant-sdk';
 
 const game = new GameAPI();
 
@@ -212,7 +212,7 @@ if (shop.BonusStore) {
 ### GameAPI Configuration
 
 ```typescript
-import { GameAPI } from 'valorant-api';
+import { GameAPI } from '@notekunn/valorant-sdk';
 
 const game = new GameAPI({
   userAgent: 'RiotClient/58.0.0.6400294126 (Windows; 10; Professional (Build 19041))',
@@ -444,7 +444,7 @@ Get player's store/shop information.
 ## Error Handling
 
 ```typescript
-import { AuthAPI, GameAPI } from 'valorant-api';
+import { AuthAPI, GameAPI } from '@notekunn/valorant-sdk';
 
 const auth = new AuthAPI();
 const game = new GameAPI();
@@ -490,7 +490,7 @@ try {
 ### Available Regions
 
 ```typescript
-import { ValorantRegion } from 'valorant-api';
+import { ValorantRegion } from '@notekunn/valorant-sdk';
 
 // Available regions
 console.log(ValorantRegion.Na);    // 'na'
@@ -504,7 +504,7 @@ console.log(ValorantRegion.Latam); // 'latam'
 ### Game Modes
 
 ```typescript
-import { GameMode } from 'valorant-api';
+import { GameMode } from '@notekunn/valorant-sdk';
 
 // Available game modes
 console.log(GameMode.Competitive); // 'competitive'
@@ -519,7 +519,7 @@ console.log(GameMode.Custom);      // 'custom'
 ### Maps
 
 ```typescript
-import { Map } from 'valorant-api';
+import { Map } from '@notekunn/valorant-sdk';
 
 // Available maps
 console.log(Map.Ascent);   // 'Ascent'
@@ -537,7 +537,7 @@ console.log(Map.Sunset);   // 'Sunset'
 ### Agents
 
 ```typescript
-import { Agent } from 'valorant-api';
+import { Agent } from '@notekunn/valorant-sdk';
 
 // Agent UUIDs
 console.log(Agent.Jett);      // 'ADD6443A-41BD-E414-F6AD-E58D267F4E95'
@@ -550,7 +550,7 @@ console.log(Agent.Sova);      // '320B2A48-4D9B-A075-30F1-1F93A9CD638D'
 ### Error Messages
 
 ```typescript
-import { ErrorMessage } from 'valorant-api';
+import { ErrorMessage } from '@notekunn/valorant-sdk';
 
 // Pre-defined error messages
 console.log(ErrorMessage.InvalidCredentials);  // 'Invalid username or password'
@@ -587,7 +587,7 @@ pnpm lint:fix
 ### Testing
 
 ```typescript
-import { AuthAPI, GameAPI } from 'valorant-api';
+import { AuthAPI, GameAPI } from '@notekunn/valorant-sdk';
 
 describe('AuthAPI', () => {
   let auth: AuthAPI;
@@ -644,10 +644,8 @@ If you encounter any issues or have questions, please open an issue on GitHub or
 
 ## Changelog
 
-### v1.0.0
-- Initial release
-- Riot authentication support
-- Player data and MMR endpoints
-- Match history and statistics
-- Smart caching system
-- Comprehensive TypeScript types 
+See [CHANGELOG.md](./CHANGELOG.md) for a history of changes and release notes.
+
+## Contributors
+
+- [@notekunn](https://github.com/notekunn)
