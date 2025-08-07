@@ -1,5 +1,12 @@
 # Valorant SDK changelog
 
+## [1.0.2](https://github.com/Notekunn/valorant-sdk-ts/compare/v1.0.1...v1.0.2) (2025-08-07)
+
+
+### Bug Fixes
+
+* **deps:** bump eslint ([0d1229a](https://github.com/Notekunn/valorant-sdk-ts/commit/0d1229a940dd19c8845d23af6be3d54f1d1b52f2))
+
 ## [1.0.1](https://github.com/Notekunn/valorant-sdk-ts/compare/v1.0.0...v1.0.1) (2025-08-07)
 
 
