@@ -1,0 +1,60 @@
+{
+  "name": "valorant-api",
+  "version": "1.0.0",
+  "description": "TypeScript API library for Riot login and Valorant API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "example": "env-cmd -f .env ts-node examples/cookie-authentication.ts",
+    "lint": "eslint src/**/*.ts examples/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts examples/**/*.ts --fix",
+    "format": "prettier --write \"src/**/*.{ts,js,json,md}\" \"examples/**/*.{ts,js}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\" \"examples/**/*.{ts,js}\"",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "pnpm run clean && pnpm run build",
+    "check": "pnpm run lint && pnpm run format:check && pnpm run test",
+    "fix": "pnpm run lint:fix && pnpm run format"
+  },
+  "keywords": [
+    "valorant",
+    "riot",
+    "api",
+    "typescript",
+    "gaming"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.1.0",
+    "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "@typescript-eslint/parser": "^8.38.0",
+    "env-cmd": "^10.1.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.3",
+    "eslint-plugin-sort-keys": "^2.3.5",
+    "jest": "^30.0.5",
+    "prettier": "^3.6.2",
+    "ts-jest": "^29.4.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "axios": "^1.11.0",
+    "node-cache": "^5.1.2",
+    "set-cookie-parser": "^2.7.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  }
+}
