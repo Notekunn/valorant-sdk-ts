@@ -1,5 +1,12 @@
 # Valorant SDK changelog
 
+## [1.0.1](https://github.com/Notekunn/valorant-sdk-ts/compare/v1.0.0...v1.0.1) (2025-08-07)
+
+
+### Bug Fixes
+
+* permission ([471e7ea](https://github.com/Notekunn/valorant-sdk-ts/commit/471e7ea56f2e561ebcdd678757363cba582e0c6b))
+
 # 1.0.0 (2025-08-07)
 
 
