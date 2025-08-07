@@ -278,7 +278,6 @@ export interface StorefrontResponse {
 }
 
 export interface ValorantApiConfig {
-  clientVersion: string;
   userAgent?: string;
   timeout?: number;
   retries?: number;

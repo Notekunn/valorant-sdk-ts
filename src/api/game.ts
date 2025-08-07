@@ -13,20 +13,15 @@ import type {
 
 export class GameAPI {
   private httpClient: HttpClient;
-  private config: ValorantApiConfig;
   private version: ValorantVersion | null = null;
 
-  constructor(config: ValorantApiConfig) {
-    this.config = {
-      ...config,
-    };
-
+  constructor(config?: ValorantApiConfig) {
     this.httpClient = new HttpClient({
       headers: {
-        'User-Agent': this.config.userAgent || 'RiotClient/58.0.0.6400294126',
+        'User-Agent': config?.userAgent || 'RiotClient/58.0.0.6400294126',
       },
-      retries: this.config.retries ?? 3,
-      timeout: this.config.timeout ?? 10000,
+      retries: config?.retries ?? 3,
+      timeout: config?.timeout ?? 10000,
     });
     this.getVersion();
   }

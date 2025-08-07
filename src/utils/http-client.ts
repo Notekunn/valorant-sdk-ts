@@ -181,14 +181,6 @@ export class HttpClient {
     };
   }
 
-  setAuthToken(token: string): void {
-    this.client.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  }
-
-  setUserAgent(userAgent: string): void {
-    this.client.defaults.headers.common['User-Agent'] = userAgent;
-  }
-
   getInstance(): AxiosInstance {
     return this.client;
   }

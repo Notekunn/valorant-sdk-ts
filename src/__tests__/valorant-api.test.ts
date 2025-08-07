@@ -4,12 +4,7 @@ describe('GameAPI', () => {
   let api: GameAPI;
 
   beforeEach(() => {
-    api = new GameAPI({
-      clientVersion: 'test-version',
-      retries: 2,
-      timeout: 5000,
-      userAgent: 'test-user-agent',
-    });
+    api = new GameAPI();
   });
 
   describe('Initialization', () => {

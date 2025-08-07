@@ -1,7 +1,7 @@
 {
-  "name": "valorant-api",
+  "name": "valorant-client",
   "version": "1.0.0",
-  "description": "TypeScript API library for Riot login and Valorant API",
+  "description": "TypeScript API library for Riot login and Valorant client",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
