@@ -11,7 +11,6 @@ async function authenticateWithCookies() {
   try {
     const riotAuth = new AuthAPI();
     const valorantAPI = new GameAPI({
-      clientVersion: 'release-07.12-shipping-21-2100',
       userAgent: 'RiotClient/58.0.0.6400294126 (Windows; 10; Professional (Build 19041))',
     });
 
