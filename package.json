@@ -9,7 +9,6 @@
     "dev": "tsc --watch",
     "start": "node dist/index.js",
     "test": "jest",
-    "example": "env-cmd -f .env ts-node examples/cookie-authentication.ts",
     "lint": "eslint src/**/*.ts examples/**/*.ts",
     "lint:fix": "eslint src/**/*.ts examples/**/*.ts --fix",
     "format": "prettier --write \"src/**/*.{ts,js,json,md}\" \"examples/**/*.{ts,js}\"",
