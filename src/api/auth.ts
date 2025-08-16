@@ -116,7 +116,7 @@ export class AuthAPI {
 
   async refreshToken(auth: RiotReAuthResponse): Promise<RiotReAuthResponse> {
     try {
-      if (auth.expireAt && auth.expireAt.getTime() > new Date().getTime()) {
+      if (auth.expireAt && new Date(auth.expireAt).getTime() > new Date().getTime()) {
         console.log('Token is still valid, only refresh entitlements token');
         const entitlementsToken = await this.fetchEntitlementsToken(auth.accessToken);
 
@@ -270,7 +270,7 @@ export class AuthAPI {
       auth.accessToken &&
       auth.entitlementsToken &&
       auth.expireAt &&
-      auth.expireAt.getTime() > new Date().getTime()
+      new Date(auth.expireAt).getTime() > new Date().getTime()
     );
   }
 }
