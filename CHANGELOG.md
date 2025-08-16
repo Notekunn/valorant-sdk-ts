@@ -1,5 +1,12 @@
 # Valorant SDK changelog
 
+# [1.1.0](https://github.com/Notekunn/valorant-sdk-ts/compare/v1.0.3...v1.1.0) (2025-08-16)
+
+
+### Features
+
+* add example script and enhance token handling ([162b1f0](https://github.com/Notekunn/valorant-sdk-ts/commit/162b1f08412ec9106eb6935a0ae31c376eb23da2))
+
 ## [1.0.3](https://github.com/Notekunn/valorant-sdk-ts/compare/v1.0.2...v1.0.3) (2025-08-11)
 
 

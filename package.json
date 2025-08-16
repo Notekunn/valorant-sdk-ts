@@ -1,6 +1,6 @@
 {
   "name": "@notekunn/valorant-sdk",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "TypeScript API library for Riot login and Valorant client",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
