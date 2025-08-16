@@ -17,9 +17,9 @@ export const parseAccessToken = (redirectUrl: string): RiotAuthToken => {
     const idToken = params.get('id_token') || '';
     const expiresIn = +(params.get('expires_in') || 0);
 
-    const expiresAt = new Date(Date.now() + expiresIn * 1000);
+    const expireAt = new Date(Date.now() + expiresIn * 1000);
 
-    return { accessToken, idToken, expiresAt };
+    return { accessToken, idToken, expireAt };
   } catch (error) {
     console.log(error);
     return {};

@@ -28,7 +28,8 @@ async function authenticateWithCookies() {
 
     const region = await valorantAPI.getRegion(authResult.accessToken, authResult.idToken);
 
-    const shop = await valorantAPI.getShop(authResult, region, userInfo.puuid);
+    const reAuthResult = await riotAuth.refreshToken(authResult);
+    const shop = await valorantAPI.getShop(reAuthResult, region, userInfo.puuid);
     console.log(JSON.stringify(shop));
 
     return authResult;

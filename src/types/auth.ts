@@ -31,6 +31,7 @@ export interface RiotReAuthResponse {
   idToken: string;
   entitlementsToken: string;
   cookies?: RiotAuthCookies;
+  expireAt?: Date;
 }
 
 export interface RiotUserInfo {
@@ -50,5 +51,5 @@ export interface RiotAuthConfig {
 export interface RiotAuthToken {
   accessToken?: string;
   idToken?: string;
-  expiresAt?: Date;
+  expireAt?: Date;
 }

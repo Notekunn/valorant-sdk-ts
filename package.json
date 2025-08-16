@@ -7,6 +7,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
+    "example": "env-cmd -f .env ts-node examples/cookie-authentication.ts",
     "start": "node dist/index.js",
     "test": "jest",
     "lint": "eslint src/**/*.ts examples/**/*.ts",

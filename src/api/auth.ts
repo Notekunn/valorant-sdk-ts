@@ -86,13 +86,17 @@ export class AuthAPI {
 
       const redirectUrl = response.headers['location'];
 
-      const { accessToken, idToken } = parseAccessToken(redirectUrl);
+      const { accessToken, idToken, expireAt } = parseAccessToken(redirectUrl);
       if (!accessToken) {
         throw new Error('Failed to extract access token from cookies');
       }
 
       if (!idToken) {
         throw new Error('Failed to extract id token from cookies');
+      }
+
+      if (!expireAt) {
+        throw new Error('Failed to extract expire at from cookies');
       }
 
       // Step 3: Get entitlements token
@@ -103,11 +107,39 @@ export class AuthAPI {
         idToken,
         entitlementsToken,
         cookies: parseCookies(cookies),
+        expireAt,
       };
     } catch (error) {
-      throw new Error(
-        `Re-authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
+      throw new Error(error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+
+  async refreshToken(auth: RiotReAuthResponse): Promise<RiotReAuthResponse> {
+    try {
+      if (auth.expireAt && auth.expireAt.getTime() > new Date().getTime()) {
+        console.log('Token is still valid, only refresh entitlements token');
+        const entitlementsToken = await this.fetchEntitlementsToken(auth.accessToken);
+
+        return {
+          ...auth,
+          entitlementsToken,
+        };
+      }
+
+      if (Array.isArray(auth.cookies) && auth.cookies.length > 0) {
+        console.log('Token is expired, re-authenticate with cookies');
+        const cookies = generateCookieString(auth.cookies);
+        const reAuth = await this.reAuthenticate(cookies);
+
+        return {
+          ...reAuth,
+          entitlementsToken: reAuth.entitlementsToken,
+        };
+      }
+
+      return auth;
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : 'Unknown error');
     }
   }
 
