@@ -266,6 +266,11 @@ export class AuthAPI {
    * Check if user is authenticated
    */
   isAuthenticated(auth: RiotReAuthResponse): boolean {
-    return !!(auth.accessToken && auth.entitlementsToken);
+    return !!(
+      auth.accessToken &&
+      auth.entitlementsToken &&
+      auth.expireAt &&
+      auth.expireAt.getTime() > new Date().getTime()
+    );
   }
 }
