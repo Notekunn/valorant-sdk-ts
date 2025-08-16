@@ -268,21 +268,4 @@ export class AuthAPI {
   isAuthenticated(auth: RiotReAuthResponse): boolean {
     return !!(auth.accessToken && auth.entitlementsToken);
   }
-
-  /**
-   * Refresh authentication tokens
-   */
-  async refreshTokens(accessToken: string): Promise<string> {
-    if (!accessToken) {
-      throw new Error('No access token available for refresh');
-    }
-
-    try {
-      const entitlementsToken = await this.fetchEntitlementsToken(accessToken);
-
-      return entitlementsToken;
-    } catch {
-      throw new Error('Token refresh failed. Please re-authenticate.');
-    }
-  }
 }
