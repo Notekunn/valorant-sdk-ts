@@ -1,5 +1,12 @@
 # Valorant SDK changelog
 
+## [1.1.3](https://github.com/Notekunn/valorant-sdk-ts/compare/v1.1.2...v1.1.3) (2025-08-16)
+
+
+### Bug Fixes
+
+* expireAt ([6866fea](https://github.com/Notekunn/valorant-sdk-ts/commit/6866fea56e122b7649a33b9b5a402ca568499bf5))
+
 ## [1.1.2](https://github.com/Notekunn/valorant-sdk-ts/compare/v1.1.1...v1.1.2) (2025-08-16)
 
 
