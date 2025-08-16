@@ -1,5 +1,12 @@
 # Valorant SDK changelog
 
+## [1.1.2](https://github.com/Notekunn/valorant-sdk-ts/compare/v1.1.1...v1.1.2) (2025-08-16)
+
+
+### Bug Fixes
+
+* is authenticated ([de721ab](https://github.com/Notekunn/valorant-sdk-ts/commit/de721ab57e8e912a8f78eed87c515442dded6df6))
+
 ## [1.1.1](https://github.com/Notekunn/valorant-sdk-ts/compare/v1.1.0...v1.1.1) (2025-08-16)
 
 
